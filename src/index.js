@@ -1,12 +1,107 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '../node_modules/font-awesome/css/font-awesome.min.css';
 import './style.css';
+import { useState, useEffect } from 'react';
+import moment from 'moment';
 
+function getWindowDimensions() {
+    const { innerWidth: width, innerHeight: height } = window;
+    return {
+        width,
+        height
+    };
+}
+
+export default function useWindowDimensions() {
+    const [windowDimensions, setWindowDimensions] = useState(
+        getWindowDimensions()
+    );
+
+    useEffect(() => {
+        function handleResize() {
+            setWindowDimensions(getWindowDimensions());
+        }
+
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    return windowDimensions;
+}
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const toggleMobileMenu = () => {
     const navbar = document.getElementById('navbar-default');
     navbar.classList.toggle('hidden');
+};
+
+function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moonsetTime) {
+    const calculateDuration = (start, end) => {
+        if (start < end) return end - start;
+        return 24 * 60 - (start - end);
+    };
+
+    const calculateCurrentDuration = (current, start, end) => {
+        if (start < end) return (current >= start && current <= end) ? current - start : 0;
+        return (current >= start || current <= end) ? (current >= start) ? current - start : 24 * 60 - (start - current) : 0;
+    };
+
+    const sunTotalDuration = calculateDuration(sunriseTime, sunsetTime);
+    const sunCurrentDuration = calculateCurrentDuration(currentTime, sunriseTime, sunsetTime);
+    const moonTotalDuration = calculateDuration(moonriseTime, moonsetTime);
+    const moonCurrentDuration = calculateCurrentDuration(currentTime, moonriseTime, moonsetTime);
+
+    const sunNormalized = (sunCurrentDuration / sunTotalDuration >= 0 && sunCurrentDuration / sunTotalDuration <= 1)
+        ? sunCurrentDuration / sunTotalDuration
+        : (sunCurrentDuration / sunTotalDuration < 0)
+            ? 0
+            : 1;
+
+    const moonNormalized = (moonCurrentDuration / moonTotalDuration >= 0 && moonCurrentDuration / moonTotalDuration <= 1)
+        ? moonCurrentDuration / moonTotalDuration
+        : (moonCurrentDuration / moonTotalDuration < 0)
+            ? 0
+            : 1;
+
+    return { sunNormalized, moonNormalized };
+}
+function generateParabolaInRange(input, height) {
+    const mappedX = input * 2 - 1;
+
+    const y = height * (1 - mappedX ** 2);
+
+    return Math.max(0, Math.min(height, y));
+}
+
+const formatTimeToTotalMinutes = (timeString) => {
+    const timeFormat = 'h:mm A';
+    const date = moment(timeString, timeFormat);
+
+    if (date.isValid()) {
+        const totalMinutes = (date.hours() + 2) * 60 + date.minutes();
+        return totalMinutes;
+    } else {
+        return 'Invalid Date';
+    }
+};
+
+const Sun = ({ x, y, width, totalMinutes, sunrise, sunset }) => {
+    console.log(width);
+    console.log("X: "+x);
+    console.log("Calculated y: -" + y + "px");
+    const styles = {
+        position: 'absolute',
+        left: `${x*100}%`,
+        transform: `translateY(${-y}px)`,
+    };
+
+    if (totalMinutes >= sunrise && totalMinutes <= sunset) {
+        return <i className="fa-solid fa-sun sun" style={styles}></i>;
+    } else {
+        return <i className="fa-solid fa-moon moon" style={styles}></i>;
+    }
+
 };
 
 const Navigation = () => {
@@ -60,16 +155,91 @@ const Title = () => {
 
 const Card = ({ id, title, content }) => {
     return (
-        <div className="md:justify-center w-3/4 md:w-2/4 mb-20 bg-gray-900/50 p-5 rounded shadow-md" id={id}>
+        <div className="cloud md:justify-center w-3/4 md:w-2/4 mb-20 p-5 rounded shadow-md" id={id}>
             <p className="text-white text-5xl mb-5">{title}</p>
             <p className="text-white">{content}</p>
+
         </div>
     );
 };
 
+function mapValueToGradient(value, gradientColors) {
+    const gradientLength = gradientColors.length - 1;
+    const colorIndex = value * gradientLength;
+    const startIndex = Math.floor(colorIndex);
+    const endIndex = Math.min(startIndex + 1, gradientLength);
+
+    const startColor = gradientColors[startIndex] || gradientColors[0];
+    const endColor = gradientColors[endIndex] || gradientColors[gradientLength];
+    const mixFactor = colorIndex - startIndex;
+
+    // Interpolate between startColor and endColor
+    const interpolatedColor = (color1, color2, mix) => {
+        const result = [];
+        for (let i = 0; i < 3; i++) {
+            result.push(Math.round(color1[i] * (1 - mix) + color2[i] * mix));
+        }
+        return result;
+    };
+
+    return `rgb(${interpolatedColor(startColor, endColor, mixFactor).join(',')})`;
+}
+
 const Website = () => {
+    var { height, width } = useWindowDimensions();
+    var date = new Date();
+
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        fetch('https://api.sunrise-sunset.org/json?lat=54.90130&lng=23.90323')
+            .then((response) => response.json())
+            .then((data) => {
+                setPosts(data);
+            })
+            .catch((err) => {
+                console.log(err.message);
+            });
+    }, []);
+
+    const sunrise = posts.results && formatTimeToTotalMinutes(posts.results.sunrise);
+    const sunset = posts.results && formatTimeToTotalMinutes(posts.results.sunset);
+
+    const currentHours = date.getHours();
+    const currentMinutes = date.getMinutes();
+    const totalMinutes = currentHours * 60 + currentMinutes;
+    //const totalMinutes = 1440;
+
+    const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
+    const x = sunNormalized + moonNormalized;
+
+    const y = generateParabolaInRange(x, height / 2);
+
+    const customGradient = [
+        [4, 55, 136],
+        [119, 219, 250],
+        [4, 55, 136],
+    ];
+
+    const color = mapValueToGradient(x, customGradient);
+    console.log(color);
+
+    const backgroundColor = `${color}`;
+
+    const pageContainerStyle = {
+        backgroundColor: backgroundColor, // Set the background color dynamically
+    };
+
     return (
-        <div class="grid grid-cols-1 place-items-center w-screen bg-gray-800">
+        <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
+            <Sun
+                x={x}
+                y={y}
+                width={width}
+                totalMinutes={totalMinutes}
+                sunrise={sunrise}
+                sunset={sunset}
+            />
             <Navigation />
             <Title />
             <Card
@@ -80,7 +250,7 @@ const Website = () => {
             <Card
                 id="projects"
                 title="Projects"
-                content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" href="https://github.com/dovy2kas">github</a>.</p>}
+                content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
             />
 
             <Card
@@ -97,7 +267,5 @@ const Website = () => {
         </div>
     );
 };
-
-export default Website;
 
 root.render(<Website />);
