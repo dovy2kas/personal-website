@@ -3,52 +3,32 @@
 @import 'tailwindcss/utilities';
 
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 .sun {
-    font-size: 10em;
-    color: #FFF23D;
-    text-shadow: 0 0 10px rgba(255, 242, 61, 0.8), 0 0 20px rgba(255, 242, 61, 0.8), 0 0 30px rgba(255, 242, 61, 0.8), 0 0 40px rgba(255, 242, 61, 0.8);
-    z-index: 999;
-    transform: translateX(30%);
+  font-size: calc(8em + 1vw);
+  color: #fcf157;
+  text-shadow: 0 0 10px rgba(255, 242, 61, 0.8), 0 0 20px rgba(255, 242, 61, 0.5), 0 0 30px rgba(255, 242, 61, 0.2), 0 0 40px rgba(255, 242, 61, 0.1);
+  z-index: -1;
+  transform: translateX(30%);
 }
+
 .moon {
-    font-size: 10em;
-    color: #F6F1D5;
-    text-shadow: 0 0 10px rgba(150, 180, 255, 0.8), 0 0 20px rgba(120, 150, 200, 0.8), 0 0 30px rgba(80, 110, 150, 0.8), 0 0 40px rgba(40, 60, 100, 0.8);
-    z-index: 999;
-    transform: translateX(30%);
+  font-size: calc(8em + 1vw);
+  color: #F6F1D5;
+  text-shadow: 0 0 10px rgba(150, 180, 255, 0.8), 0 0 20px rgba(120, 150, 200, 0.8), 0 0 30px rgba(80, 110, 150, 0.8), 0 0 40px rgba(40, 60, 100, 0.8);
+  z-index: -1;
+  transform: translateX(30%);
 }
 
 .page-container {
-    z-index: -1;
-    position:relative;
+  z-index: 1;
+  position: relative;
 }
 
-@keyframes colors {
-    10% {
-      background: linear-gradient(#3f006c, #750050, #b10042, #da4837, #f7bb38);
-    }
-    53% {
-      background: linear-gradient(#14045f, #331a99, #282bce, #1555ec, #1e84f7);
-    }
-    55% {
-      background: linear-gradient(#14045f, #331a99, #282bce, #1555ec, #1e84f7);
-    }
-    98% {
-      background: linear-gradient(#3f006c, #750050, #b10042, #da4837, #f7bb38);
-    }
-    100% {
-      background: linear-gradient(#3f006c, #750050, #b10042, #da4837, #f7bb38);
-    }
-  }
-.gradient-day {
-    background: linear-gradient(to bottom, #87ceeb, #1e90ff); /* Daylight colors */
-    transition: background 1s ease; /* Smooth transition */
-}
-
-.gradient-night {
-    background: linear-gradient(to bottom, #000080, #191970); /* Nighttime colors */
-    transition: background 1s ease; /* Smooth transition */
+.card {
+  color: #F5F5F5;
+  background-color: #11111120;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 }

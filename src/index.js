@@ -66,6 +66,15 @@ function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moons
 
     return { sunNormalized, moonNormalized };
 }
+
+function subtractDegrees(initialDegree, degreesToSubtract) {
+    let result = initialDegree - degreesToSubtract;
+  
+    result = (result % 360 + 360) % 360;
+  
+    return result;
+  }
+
 function generateParabolaInRange(input, height) {
     const mappedX = input * 2 - 1;
 
@@ -146,8 +155,8 @@ const Title = () => {
     return (
         <div class="grid md:justify-center w-3/4 md:w-screen my-20">
             <div class="group">
-                <p class="text-white text-7xl group-hover:text-blue-500">Hello, my name is <span class="text-blue-500 group-hover:text-white">Dovydas</span>! <br></br></p>
-                <p class="text-white text-xl group-hover:text-blue-500">I am a passionate web developer that loves learning new things.</p>
+                <p class="text-white text-7xl ">Hello, my name is <span class="text-blue-500">Dovydas</span>! <br></br></p>
+                <p class="text-white text-xl ">I am a passionate web developer that loves learning new things.</p>
             </div>
         </div>
     )
@@ -155,9 +164,9 @@ const Title = () => {
 
 const Card = ({ id, title, content }) => {
     return (
-        <div className="cloud md:justify-center w-3/4 md:w-2/4 mb-20 p-5 rounded shadow-md" id={id}>
-            <p className="text-white text-5xl mb-5">{title}</p>
-            <p className="text-white">{content}</p>
+        <div className="card md:justify-center w-3/4 md:w-2/4 mb-20 p-5 rounded shadow-md" id={id}>
+            <p className="text-5xl mb-5">{title}</p>
+            <p>{content}</p>
 
         </div>
     );
@@ -204,30 +213,57 @@ const Website = () => {
 
     const sunrise = posts.results && formatTimeToTotalMinutes(posts.results.sunrise);
     const sunset = posts.results && formatTimeToTotalMinutes(posts.results.sunset);
+    var backgroundColor;
+    var startColor;
+    var endColor;
 
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
     const totalMinutes = currentHours * 60 + currentMinutes;
-    //const totalMinutes = 1440;
+    //const totalMinutes = 600;
 
     const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
     const x = sunNormalized + moonNormalized;
 
     const y = generateParabolaInRange(x, height / 2);
 
-    const customGradient = [
-        [4, 55, 136],
-        [119, 219, 250],
-        [4, 55, 136],
+    const daytimeGradient = [
+        [244,191,119],
+        [244, 192, 66],
+        [251, 144, 98]
     ];
 
-    const color = mapValueToGradient(x, customGradient);
-    console.log(color);
+    const daytimeGradientEnd = [
+        [246, 224, 193],
+        [255, 246, 223],
+        [250, 171, 137]
+    ];
 
-    const backgroundColor = `${color}`;
+    const nighttimeGradient = [
+        [0, 37, 81],
+        [0, 0, 0],
+        [0, 37, 81]
+    ];
+    const nighttimeGradientEnd = [
+        [48, 121, 209],
+        [0, 32, 71],
+        [48, 121, 209]
+    ]
+    
+    if(totalMinutes >= sunrise && totalMinutes <= sunset) {
+        startColor = mapValueToGradient(x, daytimeGradient);
+        endColor = mapValueToGradient(x, daytimeGradientEnd);
+    } else {
+        startColor = mapValueToGradient(x, nighttimeGradient);
+        endColor = mapValueToGradient(x, nighttimeGradientEnd);
+    }
+
+    const angle = subtractDegrees(x*180, 90)
+    var backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
+    console.log(backgroundGradient);
 
     const pageContainerStyle = {
-        backgroundColor: backgroundColor, // Set the background color dynamically
+        background: backgroundGradient,
     };
 
     return (
