@@ -69,11 +69,11 @@ function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moons
 
 function subtractDegrees(initialDegree, degreesToSubtract) {
     let result = initialDegree - degreesToSubtract;
-  
+
     result = (result % 360 + 360) % 360;
-  
+
     return result;
-  }
+}
 
 function generateParabolaInRange(input, height) {
     const mappedX = input * 2 - 1;
@@ -95,20 +95,63 @@ const formatTimeToTotalMinutes = (timeString) => {
     }
 };
 
-const Sun = ({ x, y, width, totalMinutes, sunrise, sunset }) => {
+const getMoonPhaseRotation = date => {
+    const cycleLength = 29.5 // days
+
+    const knownNewMoon = new Date('2022-03-02 18:34:00')
+    const secondsSinceKnownNewMoon = (date - knownNewMoon) / 1000
+    const daysSinceKnownNewMoon = secondsSinceKnownNewMoon / 60 / 60 / 24
+    const currentMoonPhasePercentage = (daysSinceKnownNewMoon % cycleLength) / cycleLength
+
+    return 360 - Math.floor(currentMoonPhasePercentage * 360)
+}
+
+const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
     console.log(width);
-    console.log("X: "+x);
+    console.log("X: " + x);
     console.log("Calculated y: -" + y + "px");
+
+    var leftbg;
+    var rightbg;
+
+    const dividerRotation = {
+        transform: `rotate3d(0, 1, 0, ${moonRotationAngle}deg)`
+    }
+
+    
+    if(moonRotationAngle < 180) {
+        leftbg = {
+            backgroundColor: '#c7cbd0'
+        }
+        rightbg = {
+            backgroundColor: '#9098a1'
+        }
+    } else {
+        leftbg = {
+            backgroundColor: '#9098a1'
+        }
+        rightbg = {
+            backgroundColor: '#c7cbd0'
+        }
+    }
+
     const styles = {
         position: 'absolute',
-        left: `${x*100}%`,
+        left: `${x * 100}%`,
         transform: `translateY(${-y}px)`,
     };
 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
         return <i className="fa-solid fa-sun sun" style={styles}></i>;
     } else {
-        return <i className="fa-solid fa-moon moon" style={styles}></i>;
+        //return <i className="fa-solid fa-moon moon" style={styles}></i>;
+        return (
+            <div class="moon" style={styles}>
+                <div class="hemisphere" style={leftbg}></div>
+                <div class="hemisphere" style={rightbg}></div>
+                <div class="divider" style={dividerRotation}></div>
+            </div>
+        );
     }
 
 };
@@ -213,7 +256,6 @@ const Website = () => {
 
     const sunrise = posts.results && formatTimeToTotalMinutes(posts.results.sunrise);
     const sunset = posts.results && formatTimeToTotalMinutes(posts.results.sunset);
-    var backgroundColor;
     var startColor;
     var endColor;
 
@@ -228,7 +270,7 @@ const Website = () => {
     const y = generateParabolaInRange(x, height / 2);
 
     const daytimeGradient = [
-        [244,191,119],
+        [244, 191, 119],
         [244, 192, 66],
         [251, 144, 98]
     ];
@@ -249,8 +291,8 @@ const Website = () => {
         [0, 32, 71],
         [48, 121, 209]
     ]
-    
-    if(totalMinutes >= sunrise && totalMinutes <= sunset) {
+
+    if (totalMinutes >= sunrise && totalMinutes <= sunset) {
         startColor = mapValueToGradient(x, daytimeGradient);
         endColor = mapValueToGradient(x, daytimeGradientEnd);
     } else {
@@ -258,13 +300,16 @@ const Website = () => {
         endColor = mapValueToGradient(x, nighttimeGradientEnd);
     }
 
-    const angle = subtractDegrees(x*180, 90)
+
+    const angle = subtractDegrees(x * 180, 90)
     var backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
     console.log(backgroundGradient);
 
     const pageContainerStyle = {
         background: backgroundGradient,
     };
+
+    const moonRotationAngle = getMoonPhaseRotation(new Date());
 
     return (
         <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
@@ -275,6 +320,7 @@ const Website = () => {
                 totalMinutes={totalMinutes}
                 sunrise={sunrise}
                 sunset={sunset}
+                moonRotationAngle={moonRotationAngle}
             />
             <Navigation />
             <Title />

@@ -11,16 +11,18 @@ html {
   color: #fcf157;
   text-shadow: 0 0 10px rgba(255, 242, 61, 0.8), 0 0 20px rgba(255, 242, 61, 0.5), 0 0 30px rgba(255, 242, 61, 0.2), 0 0 40px rgba(255, 242, 61, 0.1);
   z-index: -1;
-  transform: translateX(30%);
+  /*transform: translateX(30%); */
 }
 
-.moon {
+/* .moon {
   font-size: calc(8em + 1vw);
   color: #F6F1D5;
   text-shadow: 0 0 10px rgba(150, 180, 255, 0.8), 0 0 20px rgba(120, 150, 200, 0.8), 0 0 30px rgba(80, 110, 150, 0.8), 0 0 40px rgba(40, 60, 100, 0.8);
   z-index: -1;
   transform: translateX(30%);
-}
+  width: 50px;
+  height: 50px;
+} */
 
 .page-container {
   z-index: 1;
@@ -31,4 +33,66 @@ html {
   color: #F5F5F5;
   background-color: #11111120;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Moon's styles */
+
+.moon {
+  border-radius: 100%;
+  width: 7vw;
+  height: 7vw;
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  position: relative;
+  box-shadow: 5px 0 10px 3px rgba(229,229,229,0.3),
+              0 0 10px 2px rgba(229,229,229,0.3),
+              5px 0 10px 3px rgba(229,229,229,0.3),
+               0px 0 3px 2px rgba(229,229,229,0.3);
+  z-index: -1;
+}
+
+.hemisphere {
+  width: 50%;
+  height: 100%;
+}
+
+.divider,
+.divider:after {
+  top: 0;
+  left: 0;
+  width: 7vw;
+  height: 7vw;
+  position: absolute;
+  border-radius: 100%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.divider {
+  background-color: #9098a1;
+  
+}
+
+.divider:after {
+  content: '';
+  background-color: #c7cbd0;
+  transform: rotateY(180deg);
+}
+
+.moon::after{
+  content: "";
+  background-color: rgba(199, 203, 208, 0.81);
+  display: block;
+  position: absolute;
+  left:  65%;
+  top:  20%;
+  width: 15%;  
+  height: 15%;
+  border-radius:50%;
+  box-shadow: 3px 0 0 1px rgba(98, 98, 98, 0.51),
+                7px 45px 0 -5px rgba(199, 203, 208, 0.9),
+                9px 45px 0 -5px rgba(100, 100, 100, 0.51),
+               35px 20px 0 -10px rgba(199, 203, 208, 0.9),
+               37px 20px 0 -10px rgba(100, 100, 100, 0.51);
 }
