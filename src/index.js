@@ -6,7 +6,8 @@ import { useState, useEffect } from 'react';
 import moment from 'moment';
 
 function getWindowDimensions() {
-    const { innerWidth: width, innerHeight: height } = window;
+    const height = document.documentElement.scrollHeight;
+    const width = document.documentElement.clientWidth;
     return {
         width,
         height
@@ -14,21 +15,20 @@ function getWindowDimensions() {
 }
 
 export default function useWindowDimensions() {
-    const [windowDimensions, setWindowDimensions] = useState(
-        getWindowDimensions()
-    );
-
+    const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+  
     useEffect(() => {
-        function handleResize() {
-            setWindowDimensions(getWindowDimensions());
-        }
-
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+      function handleResize() {
+        setWindowDimensions(getWindowDimensions());
+      }
+  
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }, []);
-
+  
+    // Return height and width directly from the hook
     return windowDimensions;
-}
+  }
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const toggleMobileMenu = () => {
@@ -76,9 +76,7 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
 }
 
 function generateParabolaInRange(input, height) {
-    const mappedX = input * 2 - 1;
-
-    const y = height * (1 - mappedX ** 2);
+    const y = height/2 * (1 - input ** 2);
 
     return Math.max(0, Math.min(height, y));
 }
@@ -239,6 +237,11 @@ function mapValueToGradient(value, gradientColors) {
 
 const Website = () => {
     var { height, width } = useWindowDimensions();
+    useEffect(() => {
+        // Access height and width here after the page loads
+        console.log('Height:', height);
+        console.log('Width:', width);
+      }, [height, width]); 
     var date = new Date();
 
     const [posts, setPosts] = useState([]);
@@ -261,13 +264,16 @@ const Website = () => {
 
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
-    const totalMinutes = currentHours * 60 + currentMinutes;
-    //const totalMinutes = 600;
+    //const totalMinutes = currentHours * 60 + currentMinutes;
+    const totalMinutes = 731;
 
     const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
     const x = sunNormalized + moonNormalized;
 
-    const y = generateParabolaInRange(x, height / 2);
+    const y = generateParabolaInRange(x, height);
+    console.log("scroll: " + height)
+    //let y = yvalue * ((height-viewportHeight) * percentage);
+    //y = Math.max(0, Math.min(height/2, y));
 
     const daytimeGradient = [
         [244, 191, 119],
@@ -303,7 +309,6 @@ const Website = () => {
 
     const angle = subtractDegrees(x * 180, 90)
     var backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
-    console.log(backgroundGradient);
 
     const pageContainerStyle = {
         background: backgroundGradient,
