@@ -4,25 +4,15 @@
 
 html {
   scroll-behavior: smooth;
+  overflow: hidden;
 }
 
 .sun {
-  font-size: calc(8em + 1vw);
+  font-size: 15vh;
   color: #fcf157;
   text-shadow: 0 0 10px rgba(255, 242, 61, 0.8), 0 0 20px rgba(255, 242, 61, 0.5), 0 0 30px rgba(255, 242, 61, 0.2), 0 0 40px rgba(255, 242, 61, 0.1);
   z-index: -1;
-  /*transform: translateX(30%); */
 }
-
-/* .moon {
-  font-size: calc(8em + 1vw);
-  color: #F6F1D5;
-  text-shadow: 0 0 10px rgba(150, 180, 255, 0.8), 0 0 20px rgba(120, 150, 200, 0.8), 0 0 30px rgba(80, 110, 150, 0.8), 0 0 40px rgba(40, 60, 100, 0.8);
-  z-index: -1;
-  transform: translateX(30%);
-  width: 50px;
-  height: 50px;
-} */
 
 .page-container {
   z-index: 1;
@@ -35,12 +25,10 @@ html {
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* Moon's styles */
-
 .moon {
   border-radius: 100%;
-  width: 7vw;
-  height: 7vw;
+  width: 10vh;
+  height: 10vh;
   display: flex;
   overflow: hidden;
   align-items: center;
@@ -61,8 +49,8 @@ html {
 .divider:after {
   top: 0;
   left: 0;
-  width: 7vw;
-  height: 7vw;
+  width: 10vh;
+  height: 10vh;
   position: absolute;
   border-radius: 100%;
   transform-style: preserve-3d;
@@ -95,4 +83,50 @@ html {
                 9px 45px 0 -5px rgba(100, 100, 100, 0.51),
                35px 20px 0 -10px rgba(199, 203, 208, 0.9),
                37px 20px 0 -10px rgba(100, 100, 100, 0.51);
+}
+
+/* Snow animation */
+
+@function random_range($min, $max) {
+  $rand: random();
+  $random_range: $min + floor($rand * (($max - $min) + 1));
+  @return $random_range;
+}
+
+.snow {
+  $total: 200;
+  position: absolute;
+  z-index: 999;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+
+  @for $i from 1 through $total {
+    $random-x: random(1000000) * 0.0001vw;
+    $random-offset: random_range(-100000, 100000) * 0.0001vw;
+    $random-x-end: $random-x + $random-offset;
+    $random-x-end-yoyo: $random-x + ($random-offset / 2);
+    $random-yoyo-time: random_range(30000, 80000) / 100000;
+    $random-yoyo-y: $random-yoyo-time * 100vh;
+    $random-scale: random(10000) * 0.0001;
+    $fall-duration: random_range(10, 30) * 1s;
+    $fall-delay: random(30) * -1s;
+
+    &:nth-child(#{$i}) {
+      opacity: random(10000) * 0.0001;
+      transform: translate($random-x, -10px) scale($random-scale);
+      animation: fall-#{$i} $fall-duration $fall-delay linear infinite;
+    }
+
+    @keyframes fall-#{$i} {
+      #{percentage($random-yoyo-time)} {
+        transform: translate($random-x-end, $random-yoyo-y) scale($random-scale);
+      }
+
+      to {
+        transform: translate($random-x-end-yoyo, 100vh) scale($random-scale);
+      }
+    }
+  }
 }

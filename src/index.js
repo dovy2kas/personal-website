@@ -1,34 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../node_modules/font-awesome/css/font-awesome.min.css';
-import './style.css';
+import './style.scss';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
+import Snow from './components/snow';
 
-function getWindowDimensions() {
-    const height = document.documentElement.scrollHeight;
-    const width = document.documentElement.clientWidth;
-    return {
-        width,
-        height
-    };
-}
-
-export default function useWindowDimensions() {
-    const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
-  
-    useEffect(() => {
-      function handleResize() {
-        setWindowDimensions(getWindowDimensions());
-      }
-  
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }, []);
-  
-    // Return height and width directly from the hook
-    return windowDimensions;
-  }
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const toggleMobileMenu = () => {
@@ -76,7 +53,7 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
 }
 
 function generateParabolaInRange(input, height) {
-    const y = height/2 * (1 - input ** 2);
+    const y = height / 2 * (1 - input ** 2);
 
     return Math.max(0, Math.min(height, y));
 }
@@ -116,8 +93,8 @@ const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) 
         transform: `rotate3d(0, 1, 0, ${moonRotationAngle}deg)`
     }
 
-    
-    if(moonRotationAngle < 180) {
+
+    if (moonRotationAngle < 180) {
         leftbg = {
             backgroundColor: '#c7cbd0'
         }
@@ -142,7 +119,6 @@ const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
         return <i className="fa-solid fa-sun sun" style={styles}></i>;
     } else {
-        //return <i className="fa-solid fa-moon moon" style={styles}></i>;
         return (
             <div class="moon" style={styles}>
                 <div class="hemisphere" style={leftbg}></div>
@@ -236,12 +212,10 @@ function mapValueToGradient(value, gradientColors) {
 }
 
 const Website = () => {
-    var { height, width } = useWindowDimensions();
-    useEffect(() => {
-        // Access height and width here after the page loads
-        console.log('Height:', height);
-        console.log('Width:', width);
-      }, [height, width]); 
+    const [height, setHeight] = useState(0);
+    const [width, setWidth] = useState(0);
+    useEffect(() => { setHeight(document.documentElement.scrollHeight) });
+    useEffect(() => { setWidth(document.body.clientWidth) });
     var date = new Date();
 
     const [posts, setPosts] = useState([]);
@@ -264,16 +238,37 @@ const Website = () => {
 
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
-    //const totalMinutes = currentHours * 60 + currentMinutes;
-    const totalMinutes = 731;
+    const totalMinutes = currentHours * 60 + currentMinutes;
+    //const totalMinutes = 731;
 
     const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
     const x = sunNormalized + moonNormalized;
 
+    const [isSnowing, setIsSnowing] = useState(false);
+    const [isRaining, setIsRaining] = useState(false);
+  
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=56.3176&longitude=22.3463&current=rain,showers,snowfall&past_days=1&forecast_days=1');
+          const data = await response.json();
+  
+          // Check the values of rain, showers, and snowfall to determine weather conditions
+          const { rain, showers, snowfall } = data.current;
+          setIsSnowing(snowfall > 0);
+          setIsRaining(rain > 0 || showers > 0);
+        } catch (error) {
+          console.error('Error fetching weather data:', error);
+        }
+      };
+  
+      fetchData();
+    }, []);
+
+    console.log("snowing: " + isSnowing);
+    console.log("raining: " + isRaining);
+
     const y = generateParabolaInRange(x, height);
-    console.log("scroll: " + height)
-    //let y = yvalue * ((height-viewportHeight) * percentage);
-    //y = Math.max(0, Math.min(height/2, y));
 
     const daytimeGradient = [
         [244, 191, 119],
@@ -306,7 +301,6 @@ const Website = () => {
         endColor = mapValueToGradient(x, nighttimeGradientEnd);
     }
 
-
     const angle = subtractDegrees(x * 180, 90)
     var backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
 
@@ -317,41 +311,48 @@ const Website = () => {
     const moonRotationAngle = getMoonPhaseRotation(new Date());
 
     return (
-        <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
-            <Sun
-                x={x}
-                y={y}
-                width={width}
-                totalMinutes={totalMinutes}
-                sunrise={sunrise}
-                sunset={sunset}
-                moonRotationAngle={moonRotationAngle}
+        <div>
+            <Snow 
+                snowing = {isSnowing}
             />
-            <Navigation />
-            <Title />
-            <Card
-                id="about"
-                title="About"
-                content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
-            />
-            <Card
-                id="projects"
-                title="Projects"
-                content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
-            />
+            <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
 
-            <Card
-                id="experience"
-                title="Experience"
-                content="Sadly, none yet."
-            />
+                <Sun
+                    x={x}
+                    y={y}
+                    width={width}
+                    totalMinutes={totalMinutes}
+                    sunrise={sunrise}
+                    sunset={sunset}
+                    moonRotationAngle={moonRotationAngle}
+                />
+                <Navigation />
+                <Title />
+                <Card
+                    id="about"
+                    title="About"
+                    content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
+                />
+                <Card
+                    id="projects"
+                    title="Projects"
+                    content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
+                />
 
-            <Card
-                id="contact"
-                title="Contant"
-                content="You can shoot an email at contact@dovydas.tech"
-            />
+                <Card
+                    id="experience"
+                    title="Experience"
+                    content="Sadly, none yet."
+                />
+
+                <Card
+                    id="contact"
+                    title="Contant"
+                    content="You can shoot an email at contact@dovydas.tech"
+                />
+            </div>
         </div>
+
     );
 };
 
