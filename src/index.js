@@ -5,6 +5,7 @@ import './style.scss';
 import { useState, useEffect } from 'react';
 import moment from 'moment';
 import Snow from './components/snow';
+import Rain from './components/rain';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -53,9 +54,11 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
 }
 
 function generateParabolaInRange(input, height) {
-    const y = height / 2 * (1 - input ** 2);
+    const mappedX = input * 2 - 1;
 
-    return Math.max(0, Math.min(height/2, y));
+    const y = height * (1 - mappedX ** 2);
+
+    return Math.max(0, Math.min(height, y));
 }
 
 const formatTimeToTotalMinutes = (timeString) => {
@@ -71,7 +74,7 @@ const formatTimeToTotalMinutes = (timeString) => {
 };
 
 const getMoonPhaseRotation = date => {
-    const cycleLength = 29.5 // days
+    const cycleLength = 29.5
 
     const knownNewMoon = new Date('2022-03-02 18:34:00')
     const secondsSinceKnownNewMoon = (date - knownNewMoon) / 1000
@@ -82,10 +85,6 @@ const getMoonPhaseRotation = date => {
 }
 
 const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
-    console.log(width);
-    console.log("X: " + x);
-    console.log("Calculated y: -" + y + "px");
-
     var leftbg;
     var rightbg;
 
@@ -199,7 +198,6 @@ function mapValueToGradient(value, gradientColors) {
     const endColor = gradientColors[endIndex] || gradientColors[gradientLength];
     const mixFactor = colorIndex - startIndex;
 
-    // Interpolate between startColor and endColor
     const interpolatedColor = (color1, color2, mix) => {
         const result = [];
         for (let i = 0; i < 3; i++) {
@@ -239,7 +237,7 @@ const Website = () => {
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
     const totalMinutes = currentHours * 60 + currentMinutes;
-    //const totalMinutes = 731;
+    //const totalMinutes = 1300;
 
     const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
     const x = sunNormalized + moonNormalized;
@@ -252,8 +250,6 @@ const Website = () => {
         try {
           const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=56.3176&longitude=22.3463&current=rain,showers,snowfall&past_days=1&forecast_days=1');
           const data = await response.json();
-  
-          // Check the values of rain, showers, and snowfall to determine weather conditions
           const { rain, showers, snowfall } = data.current;
           setIsSnowing(snowfall > 0);
           setIsRaining(rain > 0 || showers > 0);
@@ -265,10 +261,8 @@ const Website = () => {
       fetchData();
     }, []);
 
-    console.log("snowing: " + isSnowing);
-    console.log("raining: " + isRaining);
 
-    const y = generateParabolaInRange(x, height);
+    const y = generateParabolaInRange(x, height/2);
 
     const daytimeGradient = [
         [244, 191, 119],
@@ -315,6 +309,10 @@ const Website = () => {
             <Snow 
                 snowing = {isSnowing}
             />
+            <Rain
+                isRaining = {isRaining}
+            />
+
             <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
 
                 <Sun
