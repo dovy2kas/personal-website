@@ -4,7 +4,12 @@
 
 html {
   scroll-behavior: smooth;
-  overflow: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 .sun {

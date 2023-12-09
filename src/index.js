@@ -55,7 +55,7 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
 function generateParabolaInRange(input, height) {
     const y = height / 2 * (1 - input ** 2);
 
-    return Math.max(0, Math.min(height, y));
+    return Math.max(0, Math.min(height/2, y));
 }
 
 const formatTimeToTotalMinutes = (timeString) => {
