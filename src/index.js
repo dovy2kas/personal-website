@@ -112,7 +112,7 @@ const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) 
     const styles = {
         position: 'absolute',
         left: `${x * 100}%`,
-        transform: `translateY(${-y}px)`,
+        transform: `translateY(calc(${-y}px + 15vh))`,
     };
 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
@@ -244,25 +244,25 @@ const Website = () => {
 
     const [isSnowing, setIsSnowing] = useState(false);
     const [isRaining, setIsRaining] = useState(false);
-  
+
     useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=56.3176&longitude=22.3463&current=rain,showers,snowfall&past_days=1&forecast_days=1');
-          const data = await response.json();
-          const { rain, showers, snowfall } = data.current;
-          setIsSnowing(snowfall > 0);
-          setIsRaining(rain > 0 || showers > 0);
-        } catch (error) {
-          console.error('Error fetching weather data:', error);
-        }
-      };
-  
-      fetchData();
+        const fetchData = async () => {
+            try {
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=56.3176&longitude=22.3463&current=rain,showers,snowfall&past_days=1&forecast_days=1');
+                const data = await response.json();
+                const { rain, showers, snowfall } = data.current;
+                setIsSnowing(snowfall > 0);
+                setIsRaining(rain > 0 || showers > 0);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+            }
+        };
+
+        fetchData();
     }, []);
 
 
-    const y = generateParabolaInRange(x, height/2);
+    const y = generateParabolaInRange(x, height / 2);
 
     const daytimeGradient = [
         [244, 191, 119],
@@ -306,11 +306,11 @@ const Website = () => {
 
     return (
         <div>
-            <Snow 
-                snowing = {isSnowing}
+            <Snow
+                snowing={isSnowing}
             />
             <Rain
-                isRaining = {isRaining}
+                isRaining={isRaining}
             />
 
             <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
