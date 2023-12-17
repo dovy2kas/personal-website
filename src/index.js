@@ -131,7 +131,7 @@ const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) 
 
 const Navigation = () => {
     return (
-        <nav class="bg-white border-gray-200 dark:bg-gray-900">
+        <nav class="border-gray-200 dark:bg-black dark:bg-opacity-20">
             <div class="w-screen flex flex-wrap items-center justify-center mx-auto p-4">
                 <button
                     data-collapse-toggle="navbar-default"
@@ -147,7 +147,7 @@ const Navigation = () => {
                     </svg>
                 </button>
                 <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-                    <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+                    <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:border-0 dark:bg-black dark:bg-opacity-0 dark:border-gray-700">
                         <li>
                             <a href="#about" class="block py-2 pl-3 pr-4 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500" aria-current="page">About</a>
                         </li>
@@ -237,7 +237,7 @@ const Website = () => {
     const currentHours = date.getHours();
     const currentMinutes = date.getMinutes();
     const totalMinutes = currentHours * 60 + currentMinutes;
-    //const totalMinutes = 1300;
+    //const totalMinutes = 731;
 
     const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
     const x = sunNormalized + moonNormalized;
@@ -264,16 +264,16 @@ const Website = () => {
 
     const y = generateParabolaInRange(x, height / 2);
 
-    const daytimeGradient = [
-        [244, 191, 119],
-        [244, 192, 66],
-        [251, 144, 98]
+    const daytimeGradientEnd = [
+        [156, 189, 187],
+        [125, 184, 255],
+        [205, 155, 137]
     ];
 
-    const daytimeGradientEnd = [
-        [246, 224, 193],
-        [255, 246, 223],
-        [250, 171, 137]
+    const daytimeGradient = [
+        [132, 179, 176],
+        [55, 123, 204],
+        [173, 113, 92]
     ];
 
     const nighttimeGradient = [
@@ -345,7 +345,7 @@ const Website = () => {
 
                 <Card
                     id="contact"
-                    title="Contant"
+                    title="Contact"
                     content="You can shoot an email at contact@dovydas.tech"
                 />
             </div>
