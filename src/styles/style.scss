@@ -1,0 +1,137 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+html {
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+.sun {
+  font-size: 15vh;
+  color: #fcf157;
+  text-shadow: 0 0 10px rgba(255, 242, 61, 0.8), 0 0 20px rgba(255, 242, 61, 0.5), 0 0 30px rgba(255, 242, 61, 0.2), 0 0 40px rgba(255, 242, 61, 0.1);
+  z-index: -1;
+}
+
+.page-container {
+  z-index: 1;
+  position: relative;
+}
+
+.card {
+  color: #F5F5F5;
+  background-color: #11111120;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.moon {
+  border-radius: 100%;
+  width: 10vh;
+  height: 10vh;
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  position: relative;
+  box-shadow: 5px 0 10px 3px rgba(229,229,229,0.3),
+              0 0 10px 2px rgba(229,229,229,0.3),
+              5px 0 10px 3px rgba(229,229,229,0.3),
+               0px 0 3px 2px rgba(229,229,229,0.3);
+  z-index: -1;
+}
+
+.hemisphere {
+  width: 50%;
+  height: 100%;
+}
+
+.divider,
+.divider:after {
+  top: 0;
+  left: 0;
+  width: 10vh;
+  height: 10vh;
+  position: absolute;
+  border-radius: 100%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.divider {
+  background-color: #9098a1;
+  
+}
+
+.divider:after {
+  content: '';
+  background-color: #c7cbd0;
+  transform: rotateY(180deg);
+}
+
+.moon::after{
+  content: "";
+  background-color: rgba(199, 203, 208, 0.81);
+  display: block;
+  position: absolute;
+  left:  65%;
+  top:  20%;
+  width: 15%;  
+  height: 15%;
+  border-radius:50%;
+  box-shadow: 3px 0 0 1px rgba(98, 98, 98, 0.51),
+                7px 45px 0 -5px rgba(199, 203, 208, 0.9),
+                9px 45px 0 -5px rgba(100, 100, 100, 0.51),
+               35px 20px 0 -10px rgba(199, 203, 208, 0.9),
+               37px 20px 0 -10px rgba(100, 100, 100, 0.51);
+}
+
+/* Snow animation */
+
+@function random_range($min, $max) {
+  $rand: random();
+  $random_range: $min + floor($rand * (($max - $min) + 1));
+  @return $random_range;
+}
+
+.snow {
+  $total: 200;
+  position: absolute;
+  z-index: 999;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+
+  @for $i from 1 through $total {
+    $random-x: random(1000000) * 0.0001vw;
+    $random-offset: random_range(-100000, 100000) * 0.0001vw;
+    $random-x-end: $random-x + $random-offset;
+    $random-x-end-yoyo: $random-x + ($random-offset / 2);
+    $random-yoyo-time: random_range(30000, 80000) / 100000;
+    $random-yoyo-y: $random-yoyo-time * 100vh;
+    $random-scale: random(10000) * 0.0001;
+    $fall-duration: random_range(10, 30) * 1s;
+    $fall-delay: random(30) * -1s;
+
+    &:nth-child(#{$i}) {
+      opacity: random(10000) * 0.0001;
+      transform: translate($random-x, -10px) scale($random-scale);
+      animation: fall-#{$i} $fall-duration $fall-delay linear infinite;
+    }
+
+    @keyframes fall-#{$i} {
+      #{percentage($random-yoyo-time)} {
+        transform: translate($random-x-end, $random-yoyo-y) scale($random-scale);
+      }
+
+      to {
+        transform: translate($random-x-end-yoyo, 100vh) scale($random-scale);
+      }
+    }
+  }
+}
