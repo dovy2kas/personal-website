@@ -1,10 +1,12 @@
 import React from 'react';
 import './styles/style.scss';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import moment from 'moment';
 import Snow from './components/snow';
 import Rain from './components/rain';
 import Navigation from './components/navigation';
+import LocationPopup from './components/locationPopup';
+import { useGeolocated } from 'react-geolocated';
 
 function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moonsetTime) {
     const calculateDuration = (start, end) => {
@@ -163,147 +165,206 @@ function mapValueToGradient(value, gradientColors) {
     return `rgb(${interpolatedColor(startColor, endColor, mixFactor).join(',')})`;
 }
 
+const hasAllowedLocation = () => {
+    return localStorage.getItem('locationAllowed') === 'true';
+};
+
+const setAllowedLocation = () => {
+    localStorage.setItem('locationAllowed', 'true');
+};
+
 const Home = () => {
-    const [height, setHeight] = useState(0);
-    const [width, setWidth] = useState(0);
-    useEffect(() => { setHeight(document.documentElement.scrollHeight) });
-    useEffect(() => { setWidth(document.body.clientWidth) });
-    var date = new Date();
-
-    const [posts, setPosts] = useState([]);
-
-    useEffect(() => {
-        fetch('https://api.sunrise-sunset.org/json?lat=54.90130&lng=23.90323')
-            .then((response) => response.json())
-            .then((data) => {
-                setPosts(data);
-            })
-            .catch((err) => {
-                console.log(err.message);
-            });
-    }, []);
-
-    const sunrise = posts.results && formatTimeToTotalMinutes(posts.results.sunrise);
-    const sunset = posts.results && formatTimeToTotalMinutes(posts.results.sunset);
-    var startColor;
-    var endColor;
-
-    const currentHours = date.getHours();
-    const currentMinutes = date.getMinutes();
-    const totalMinutes = currentHours * 60 + currentMinutes;
-    //const totalMinutes = 731;
-
-    const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
-    const x = sunNormalized + moonNormalized;
-
     const [isSnowing, setIsSnowing] = useState(false);
     const [isRaining, setIsRaining] = useState(false);
+    const [showModal, setShowModal] = useState(true);
+    const [height, setHeight] = useState(0);
+    const [width, setWidth] = useState(0);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=56.3176&longitude=22.3463&current=rain,showers,snowfall&past_days=1&forecast_days=1');
-                const data = await response.json();
-                const { rain, showers, snowfall } = data.current;
-                setIsSnowing(snowfall > 0);
-                setIsRaining(rain > 0 || showers > 0);
-            } catch (error) {
-                console.error('Error fetching weather data:', error);
+    useEffect(() => { setHeight(document.documentElement.scrollHeight) });
+    useEffect(() => { setWidth(document.body.clientWidth) });
+
+    var date = new Date();
+
+    const calculatedValuesRef = useRef({
+        x: 0,
+        y: 0,
+        startColor: [0, 0, 0],
+        endColor: [0, 0, 0],
+        angle: 0,
+        backgroundGradient: 'linear-gradient(0deg, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%)',
+        pageContainerStyle: {
+            background: 'linear-gradient(0deg, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%)',
+        },
+        moonRotationAngle: 0,
+    });
+
+
+    const getUserLocation = () => {
+        return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        resolve({ latitude, longitude });
+                    },
+                    (error) => {
+                        console.error('Error getting user location:', error);
+                        reject(error);
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+                reject(new Error('Geolocation not supported'));
             }
-        };
-
-        fetchData();
-    }, []);
-
-
-    const y = generateParabolaInRange(x, height / 2);
-
-    const daytimeGradientEnd = [
-        [156, 189, 187],
-        [125, 184, 255],
-        [205, 155, 137]
-    ];
-
-    const daytimeGradient = [
-        [132, 179, 176],
-        [55, 123, 204],
-        [173, 113, 92]
-    ];
-
-    const nighttimeGradient = [
-        [0, 37, 81],
-        [0, 0, 0],
-        [0, 37, 81]
-    ];
-    const nighttimeGradientEnd = [
-        [48, 121, 209],
-        [0, 32, 71],
-        [48, 121, 209]
-    ]
-
-    if (totalMinutes >= sunrise && totalMinutes <= sunset) {
-        startColor = mapValueToGradient(x, daytimeGradient);
-        endColor = mapValueToGradient(x, daytimeGradientEnd);
-    } else {
-        startColor = mapValueToGradient(x, nighttimeGradient);
-        endColor = mapValueToGradient(x, nighttimeGradientEnd);
-    }
-
-    const angle = subtractDegrees(x * 180, 90)
-    var backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
-
-    const pageContainerStyle = {
-        background: backgroundGradient,
+        });
     };
 
-    const moonRotationAngle = getMoonPhaseRotation(new Date());
+    const handleModalClose = async () => {
+        try {
+            const location = await getUserLocation();
+
+            const responseSun = await fetch('https://api.sunrise-sunset.org/json?lat=' + location.latitude + '&lng=' + location.longitude);
+            const dataSun = await responseSun.json();
+
+            const responseWeather = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + location.latitude + '&longitude=' + location.longitude + '&current=rain,showers,snowfall&past_days=1&forecast_days=1');
+            const dataWeather = await responseWeather.json();
+            const { rain, showers, snowfall } = dataWeather.current;
+
+            setIsSnowing(snowfall > 0);
+            setIsRaining(rain > 0 || showers > 0);
+
+            const currentHours = date.getHours();
+            const currentMinutes = date.getMinutes();
+            const totalMinutes = currentHours * 60 + currentMinutes;
+
+            const sunrise = formatTimeToTotalMinutes(dataSun.results.sunrise);
+            const sunset = formatTimeToTotalMinutes(dataSun.results.sunset);
+            var startColor;
+            var endColor;
+
+            const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
+            const x = sunNormalized + moonNormalized;
+            const y = generateParabolaInRange(x, height / 2);
+
+            const daytimeGradientEnd = [
+                [156, 189, 187],
+                [125, 184, 255],
+                [205, 155, 137]
+            ];
+
+            const daytimeGradient = [
+                [132, 179, 176],
+                [55, 123, 204],
+                [173, 113, 92]
+            ];
+
+            const nighttimeGradient = [
+                [0, 37, 81],
+                [0, 0, 0],
+                [0, 37, 81]
+            ];
+            const nighttimeGradientEnd = [
+                [48, 121, 209],
+                [0, 32, 71],
+                [48, 121, 209]
+            ];
+
+            if (totalMinutes >= sunrise && totalMinutes <= sunset) {
+                startColor = mapValueToGradient(x, daytimeGradient);
+                endColor = mapValueToGradient(x, daytimeGradientEnd);
+            } else {
+                startColor = mapValueToGradient(x, nighttimeGradient);
+                endColor = mapValueToGradient(x, nighttimeGradientEnd);
+            }
+            const angle = subtractDegrees(x * 180, 90);
+            const backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
+
+            const pageContainerStyle = {
+                background: backgroundGradient,
+            };
+
+            const moonRotationAngle = getMoonPhaseRotation(new Date());
+
+            calculatedValuesRef.current = {
+                x,
+                y,
+                startColor,
+                endColor,
+                angle,
+                backgroundGradient,
+                pageContainerStyle,
+                moonRotationAngle,
+            };
+
+            setWidth(document.body.clientWidth);
+            setHeight(document.documentElement.scrollHeight);
+            setIsDataLoaded(true);
+            setAllowedLocation();
+
+            setShowModal(false);
+        } catch (error) {
+            console.error('Error while getting user location:', error);
+        }
+    };
+
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
     return (
-        <div>
-            <Snow
-                snowing={isSnowing}
-            />
-            <Rain
-                isRaining={isRaining}
-            />
+        <>
+            {showModal && (
+                <div className="modal">
+                    <p>
+                        This website needs your location for better user experience. Please
+                        allow access.
+                    </p>
+                    <button onClick={handleModalClose}>Allow</button>
+                </div>
+            )}
+            {isDataLoaded && <>
+                <Snow
+                    snowing={isSnowing}
+                />
+                <Rain
+                    isRaining={isRaining}
+                />
+                <div style={calculatedValuesRef.current.pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
+                    <Sun
+                        x={calculatedValuesRef.current.x}
+                        y={calculatedValuesRef.current.y}
+                        width={width}
+                        totalMinutes={calculatedValuesRef.current.totalMinutes}
+                        sunrise={calculatedValuesRef.current.sunrise}
+                        sunset={calculatedValuesRef.current.sunset}
+                        moonRotationAngle={calculatedValuesRef.current.moonRotationAngle}
+                    />
+                    <Navigation />
+                    <Title />
+                    <Card
+                        id="about"
+                        title="About"
+                        content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
+                    />
+                    <Card
+                        id="projects"
+                        title="Projects"
+                        content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
+                    />
 
-            <div style={pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
+                    <Card
+                        id="experience"
+                        title="Experience"
+                        content="Sadly, none yet."
+                    />
 
-                <Sun
-                    x={x}
-                    y={y}
-                    width={width}
-                    totalMinutes={totalMinutes}
-                    sunrise={sunrise}
-                    sunset={sunset}
-                    moonRotationAngle={moonRotationAngle}
-                />
-                <Navigation />
-                <Title />
-                <Card
-                    id="about"
-                    title="About"
-                    content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
-                />
-                <Card
-                    id="projects"
-                    title="Projects"
-                    content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
-                />
-
-                <Card
-                    id="experience"
-                    title="Experience"
-                    content="Sadly, none yet."
-                />
-
-                <Card
-                    id="contact"
-                    title="Contact"
-                    content="You can shoot an email at contact@dovydas.tech"
-                />
-            </div>
-        </div>
+                    <Card
+                        id="contact"
+                        title="Contact"
+                        content="You can shoot an email at contact@dovydas.tech"
+                    />
+                </div>
+            </>
+            }
+        </>
 
     );
 };
