@@ -1,10 +1,84 @@
 import React from 'react';
 import './styles/style.scss';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import moment from 'moment';
 import Snow from './components/snow';
 import Rain from './components/rain';
 import Navigation from './components/navigation';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
+import Project from './components/project';
+import ProjectModal from './components/projectModal';
+import transacto_preview from './img/transacto/landing.png';
+import transacto_dashboard from './img/transacto/dashboard.png';
+import transacto_deposit from './img/transacto/deposit.png';
+import transacto_profile from './img/transacto/profile.png';
+import transacto_login from './img/transacto/login.png';
+import gambtopia_preview from './img/gambtopia/roulette.png';
+import gambtopia_crash from './img/gambtopia/crash.png';
+import gambtopia_login from './img/gambtopia/login.png';
+import gambtopia_register from './img/gambtopia/register.png'
+
+const responsive = {
+    superLargeDesktop: {
+        breakpoint: { max: 4000, min: 3000 },
+        items: 1
+    },
+    desktop: {
+        breakpoint: { max: 3000, min: 1024 },
+        items: 1
+    },
+    tablet: {
+        breakpoint: { max: 1024, min: 464 },
+        items: 1
+    },
+    mobile: {
+        breakpoint: { max: 464, min: 0 },
+        items: 1
+    }
+};
+
+const transacto_images = [
+    {
+        original: transacto_preview,
+        thumbnail: transacto_preview,
+    },
+    {
+        original: transacto_dashboard,
+        thumbnail: transacto_dashboard,
+    },
+    {
+        original: transacto_profile,
+        thumbnail: transacto_profile,
+    },
+    {
+        original: transacto_deposit,
+        thumbnail: transacto_deposit,
+    },
+    {
+        original: transacto_login,
+        thumbnail: transacto_login,
+    }
+];
+
+const gambtopia_images = [
+    {
+        original: gambtopia_preview,
+        thumbnail: gambtopia_preview,
+    },
+    {
+        original: gambtopia_crash,
+        thumbnail: gambtopia_crash,
+    },
+    {
+        original: gambtopia_login,
+        thumbnail: gambtopia_login,
+    },
+    {
+        original: gambtopia_register,
+        thumbnail: gambtopia_register,
+    }
+];
 
 function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moonsetTime) {
     const calculateDuration = (start, end) => {
@@ -45,7 +119,7 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
     return result;
 }
 
-function generateParabolaInRange(input, height = document.documentElement.scrollHeight/2) {
+function generateParabolaInRange(input, height = document.documentElement.scrollHeight / 2) {
     const mappedX = input * 2 - 1;
 
     const y = height * (1 - mappedX ** 2);
@@ -167,6 +241,8 @@ const Home = () => {
     const [isSnowing, setIsSnowing] = useState(false);
     const [isRaining, setIsRaining] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showTransactoModal, setShowTransactoModal] = useState(false);
+    const [showGambtopiaModal, setShowGambtopiaModal] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
 
     var date = new Date();
@@ -181,7 +257,7 @@ const Home = () => {
                         return setShowModal(true)
                     }
 
-                    if(showModal){
+                    if (showModal) {
                         setShowModal(false)
                     }
 
@@ -300,24 +376,24 @@ const Home = () => {
                                 </h3>
                             </div>
                             <div class="bg-blue-500/[.06] p-4 md:p-5 space-y-4">
-                                
-                                    <h3 class="font-semibold text-slate-100">Why do we need your location?</h3>
-                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+
+                                <h3 class="font-semibold text-slate-100">Why do we need your location?</h3>
+                                <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Sun Position:</b> The position of the sun in the sky depends on your geographical location. By accessing your location, we can accurately render the sun on our website.
-                                    </p>
-                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                </p>
+                                <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Weather Conditions:</b> Knowing your location helps us determine if it's raining or snowing in your area. This information allows us to provide you with relevant weather updates.
-                                    </p>
-                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                </p>
+                                <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Background Adjustment:</b> We customize the background of our website based on the current time in your location. This creates a more immersive experience tailored to your surroundings.
-                                    </p>
-                                    <h3 class="font-semibold text-slate-100">How we handle your data:</h3>
-                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                </p>
+                                <h3 class="font-semibold text-slate-100">How we handle your data:</h3>
+                                <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Privacy:</b> Your location data is used solely for the purposes mentioned above. We do not store or share this information with any third parties.
-                                    </p>
-                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                </p>
+                                <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Consent:</b> By clicking "Allow", you consent to sharing your location with us. You can revoke this access at any time in your browser settings.
-                                    </p>
+                                </p>
 
                             </div>
                             <div class="bg-blue-500/[.06] flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
@@ -328,10 +404,26 @@ const Home = () => {
                     </div>
                 </div>
             )}
+            {showTransactoModal && (
+                <ProjectModal
+                    title="Banking website"
+                    content={<p class="text-base leading-relaxes text-gray-100">This is a simple banking website which allows it's users to send and receive, as well as deposit and withdraw funds. This project was made using flask-socketio, nginx, gunicorn and a MySQL database.</p>}
+                    images={transacto_images}
+                    action={() => setShowTransactoModal(false)}
+                />
+            )}
+            {showGambtopiaModal && (
+                <ProjectModal
+                    title="Gambling website"
+                    content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fail using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
+                    images={gambtopia_images}
+                    action={() => setShowGambtopiaModal(false)}
+                />
+            )}
 
             {/* Can be here, because if bool false, returns null, bool true only set if calculatedValues exist (location granted) */}
             <Snow snowing={isSnowing} />
-            <Rain isRaining={isRaining} />   
+            <Rain isRaining={isRaining} />
 
             <div style={{ background: calculatedValues?.pageBackground ?? '#3079d1' }} class="page-container grid grid-cols-1 place-items-center w-screen">
                 {!!calculatedValues && (
@@ -342,7 +434,7 @@ const Home = () => {
                         sunrise={calculatedValues.sunrise}
                         sunset={calculatedValues.sunset}
                         moonRotationAngle={calculatedValues.moonRotationAngle}
-                  />
+                    />
                 )}
                 <Navigation />
                 <Title />
@@ -354,7 +446,24 @@ const Home = () => {
                 <Card
                     id="projects"
                     title="Projects"
-                    content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
+                    content=
+                    {
+                        <Carousel responsive={responsive}>
+                            <Project
+                                src={transacto_preview}
+                                desc="A simble banking website that allows deposits and withdrawals."
+                                title="Banking website"
+                                content={<button type="button" onClick={() => setShowTransactoModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
+                            />
+                            <Project
+                                src={gambtopia_preview}
+                                desc="A gambling website with a provably fair system."
+                                title="Gambling website"
+                                content={<button type="button" onClick={() => setShowGambtopiaModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
+                            />
+                        </Carousel>
+                    }
+
                 />
 
                 <Card
