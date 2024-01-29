@@ -298,7 +298,6 @@ const Home = () => {
 
             setWidth(document.body.clientWidth);
             setHeight(document.documentElement.scrollHeight);
-            setIsDataLoaded(true);
             setAllowedLocation();
 
             setShowModal(false);
@@ -307,20 +306,47 @@ const Home = () => {
         }
     };
 
-    const [isDataLoaded, setIsDataLoaded] = useState(false);
-
     return (
         <>
             {showModal && (
-                <div className="modal">
-                    <p>
-                        This website needs your location for better user experience. Please
-                        allow access.
-                    </p>
-                    <button onClick={handleModalClose}>Allow</button>
+                <div id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-modal="true" role="dialog" class="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                    <div class="relative p-4 w-full max-w-2xl max-h-full">
+                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                            <div class="flex items-center bg-blue-500/[.06] justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                    Location access required
+                                </h3>
+                            </div>
+                            <div class="bg-blue-500/[.06] p-4 md:p-5 space-y-4">
+                                
+                                    <h3 class="font-semibold text-slate-100">Why do we need your location?</h3>
+                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                    <b>Sun Position:</b> The position of the sun in the sky depends on your geographical location. By accessing your location, we can accurately render the sun on our website.
+                                    </p>
+                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                    <b>Weather Conditions:</b> Knowing your location helps us determine if it's raining or snowing in your area. This information allows us to provide you with relevant weather updates.
+                                    </p>
+                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                    <b>Background Adjustment:</b> We customize the background of our website based on the current time in your location. This creates a more immersive experience tailored to your surroundings.
+                                    </p>
+                                    <h3 class="font-semibold text-slate-100">How we handle your data:</h3>
+                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                    <b>Privacy:</b> Your location data is used solely for the purposes mentioned above. We do not store or share this information with any third parties.
+                                    </p>
+                                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                    <b>Consent:</b> By clicking "Allow", you consent to sharing your location with us. You can revoke this access at any time in your browser settings.
+                                    </p>
+
+                            </div>
+                            <div class="bg-blue-500/[.06] flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                                <button data-modal-hide="static-modal" onClick={handleModalClose} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
+                                <button data-modal-hide="static-modal" type="button" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Decline</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
-            {isDataLoaded && <>
+            {hasAllowedLocation() && handleModalClose() && <>
                 <Snow
                     snowing={isSnowing}
                 />
@@ -337,6 +363,35 @@ const Home = () => {
                         sunset={calculatedValuesRef.current.sunset}
                         moonRotationAngle={calculatedValuesRef.current.moonRotationAngle}
                     />
+                    <Navigation />
+                    <Title />
+                    <Card
+                        id="about"
+                        title="About"
+                        content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
+                    />
+                    <Card
+                        id="projects"
+                        title="Projects"
+                        content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
+                    />
+
+                    <Card
+                        id="experience"
+                        title="Experience"
+                        content="Sadly, none yet."
+                    />
+
+                    <Card
+                        id="contact"
+                        title="Contact"
+                        content="You can shoot an email at contact@dovydas.tech"
+                    />
+                </div>
+            </>
+            }
+            {!hasAllowedLocation() && <>
+                <div style={{ background: '#3079d1' }} class="page-container grid grid-cols-1 place-items-center w-screen">
                     <Navigation />
                     <Title />
                     <Card
