@@ -5,8 +5,6 @@ import moment from 'moment';
 import Snow from './components/snow';
 import Rain from './components/rain';
 import Navigation from './components/navigation';
-import LocationPopup from './components/locationPopup';
-import { useGeolocated } from 'react-geolocated';
 
 function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moonsetTime) {
     const calculateDuration = (start, end) => {
@@ -47,7 +45,7 @@ function subtractDegrees(initialDegree, degreesToSubtract) {
     return result;
 }
 
-function generateParabolaInRange(input, height) {
+function generateParabolaInRange(input, height = document.documentElement.scrollHeight/2) {
     const mappedX = input * 2 - 1;
 
     const y = height * (1 - mappedX ** 2);
@@ -78,7 +76,7 @@ const getMoonPhaseRotation = date => {
     return 360 - Math.floor(currentMoonPhasePercentage * 360)
 }
 
-const Sun = ({ x, y, width, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
+const Sun = ({ x, y, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
     var leftbg;
     var rightbg;
 
@@ -165,53 +163,41 @@ function mapValueToGradient(value, gradientColors) {
     return `rgb(${interpolatedColor(startColor, endColor, mixFactor).join(',')})`;
 }
 
-const hasAllowedLocation = () => {
-    return localStorage.getItem('locationAllowed') === 'true';
-};
-
-const setAllowedLocation = () => {
-    localStorage.setItem('locationAllowed', 'true');
-};
-
 const Home = () => {
     const [isSnowing, setIsSnowing] = useState(false);
     const [isRaining, setIsRaining] = useState(false);
-    const [showModal, setShowModal] = useState(true);
-    const [height, setHeight] = useState(0);
-    const [width, setWidth] = useState(0);
-
-    useEffect(() => { setHeight(document.documentElement.scrollHeight) });
-    useEffect(() => { setWidth(document.body.clientWidth) });
+    const [showModal, setShowModal] = useState(false);
+    const [showLoader, setShowLoader] = useState(false);
 
     var date = new Date();
+    const [calculatedValues, setCalculatedValues] = useState();
 
-    const calculatedValuesRef = useRef({
-        x: 0,
-        y: 0,
-        startColor: [0, 0, 0],
-        endColor: [0, 0, 0],
-        angle: 0,
-        backgroundGradient: 'linear-gradient(0deg, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%)',
-        pageContainerStyle: {
-            background: 'linear-gradient(0deg, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%)',
-        },
-        moonRotationAngle: 0,
-    });
-
-
-    const getUserLocation = () => {
+    const getUserLocation = (locationAccepted = false) => {
         return new Promise((resolve, reject) => {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const { latitude, longitude } = position.coords;
-                        resolve({ latitude, longitude });
-                    },
-                    (error) => {
-                        console.error('Error getting user location:', error);
-                        reject(error);
+                navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+                    if (!locationAccepted && permissionStatus.state === 'prompt') {
+                        // Return before getCurrentPosition, to not show location prompt, before user location accept
+                        return setShowModal(true)
                     }
-                );
+
+                    if(showModal){
+                        setShowModal(false)
+                    }
+
+                    setShowLoader(locationAccepted || permissionStatus.state === 'granted')
+
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const { latitude, longitude } = position.coords;
+                            resolve({ latitude, longitude });
+                        },
+                        (error) => {
+                            console.error('Error getting user location:', error);
+                            reject(error);
+                        }
+                    );
+                })
             } else {
                 console.error('Geolocation is not supported by this browser.');
                 reject(new Error('Geolocation not supported'));
@@ -219,9 +205,10 @@ const Home = () => {
         });
     };
 
-    const handleModalClose = async () => {
+    const calculateValues = async (locationAccepted) => {
         try {
-            const location = await getUserLocation();
+            setShowLoader(locationAccepted)
+            const location = await getUserLocation(locationAccepted);
 
             const responseSun = await fetch('https://api.sunrise-sunset.org/json?lat=' + location.latitude + '&lng=' + location.longitude);
             const dataSun = await responseSun.json();
@@ -244,7 +231,7 @@ const Home = () => {
 
             const { sunNormalized, moonNormalized } = normalizeTime(totalMinutes, sunrise, sunset, sunset, sunrise);
             const x = sunNormalized + moonNormalized;
-            const y = generateParabolaInRange(x, height / 2);
+            const y = generateParabolaInRange(x);
 
             const daytimeGradientEnd = [
                 [156, 189, 187],
@@ -277,37 +264,32 @@ const Home = () => {
                 endColor = mapValueToGradient(x, nighttimeGradientEnd);
             }
             const angle = subtractDegrees(x * 180, 90);
-            const backgroundGradient = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
-
-            const pageContainerStyle = {
-                background: backgroundGradient,
-            };
+            const pageBackground = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
 
             const moonRotationAngle = getMoonPhaseRotation(new Date());
 
-            calculatedValuesRef.current = {
+            setCalculatedValues({
                 x,
                 y,
                 startColor,
                 endColor,
                 angle,
-                backgroundGradient,
-                pageContainerStyle,
+                pageBackground,
                 moonRotationAngle,
-            };
+            })
 
-            setWidth(document.body.clientWidth);
-            setHeight(document.documentElement.scrollHeight);
-            setAllowedLocation();
-
-            setShowModal(false);
         } catch (error) {
             console.error('Error while getting user location:', error);
         }
     };
 
+    useEffect(() => {
+        calculateValues()
+    }, [])
+
     return (
         <>
+            {!calculatedValues && showLoader}
             {showModal && (
                 <div id="static-modal" data-modal-backdrop="static" tabindex="-1" aria-modal="true" role="dialog" class="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                     <div class="relative p-4 w-full max-w-2xl max-h-full">
@@ -339,86 +321,54 @@ const Home = () => {
 
                             </div>
                             <div class="bg-blue-500/[.06] flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                                <button data-modal-hide="static-modal" onClick={handleModalClose} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
-                                <button data-modal-hide="static-modal" type="button" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Decline</button>
+                                <button onClick={() => calculateValues(true)} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">I accept</button>
+                                <button onClick={() => setShowModal(false)} type="button" class="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Decline</button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
-            {hasAllowedLocation() && handleModalClose() && <>
-                <Snow
-                    snowing={isSnowing}
-                />
-                <Rain
-                    isRaining={isRaining}
-                />
-                <div style={calculatedValuesRef.current.pageContainerStyle} class="page-container grid grid-cols-1 place-items-center w-screen">
+
+            {/* Can be here, because if bool false, returns null, bool true only set if calculatedValues exist (location granted) */}
+            <Snow snowing={isSnowing} />
+            <Rain isRaining={isRaining} />   
+
+            <div style={{ background: calculatedValues?.pageBackground ?? '#3079d1' }} class="page-container grid grid-cols-1 place-items-center w-screen">
+                {!!calculatedValues && (
                     <Sun
-                        x={calculatedValuesRef.current.x}
-                        y={calculatedValuesRef.current.y}
-                        width={width}
-                        totalMinutes={calculatedValuesRef.current.totalMinutes}
-                        sunrise={calculatedValuesRef.current.sunrise}
-                        sunset={calculatedValuesRef.current.sunset}
-                        moonRotationAngle={calculatedValuesRef.current.moonRotationAngle}
-                    />
-                    <Navigation />
-                    <Title />
-                    <Card
-                        id="about"
-                        title="About"
-                        content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
-                    />
-                    <Card
-                        id="projects"
-                        title="Projects"
-                        content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
-                    />
+                        x={calculatedValues.x}
+                        y={calculatedValues.y}
+                        totalMinutes={calculatedValues.totalMinutes}
+                        sunrise={calculatedValues.sunrise}
+                        sunset={calculatedValues.sunset}
+                        moonRotationAngle={calculatedValues.moonRotationAngle}
+                  />
+                )}
+                <Navigation />
+                <Title />
+                <Card
+                    id="about"
+                    title="About"
+                    content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
+                />
+                <Card
+                    id="projects"
+                    title="Projects"
+                    content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
+                />
 
-                    <Card
-                        id="experience"
-                        title="Experience"
-                        content="Sadly, none yet."
-                    />
+                <Card
+                    id="experience"
+                    title="Experience"
+                    content="Sadly, none yet."
+                />
 
-                    <Card
-                        id="contact"
-                        title="Contact"
-                        content="You can shoot an email at contact@dovydas.tech"
-                    />
-                </div>
-            </>
-            }
-            {!hasAllowedLocation() && <>
-                <div style={{ background: '#3079d1' }} class="page-container grid grid-cols-1 place-items-center w-screen">
-                    <Navigation />
-                    <Title />
-                    <Card
-                        id="about"
-                        title="About"
-                        content="Welcome to my website! I specialize in building modern websites. My fascination with technology began at a young age, that's why I am always looking to learn new things. As a curious problem solver, I thrive diving into the intricacies of code, hardware and networking, always seeking for new challenges."
-                    />
-                    <Card
-                        id="projects"
-                        title="Projects"
-                        content={<p>I currently have two public projects. First of them is a gambling website, which allows live communication using socket.io. The second one is a banking website which includes an easy way of payments, deposits and withdrawals. These projects were built using Flask, socket.io, Nginx, Gunicorn and MySQL. You can find them on my <a class="text-blue-500 hover:text-blue-700" target="_blank" rel="noreferrer" href="https://github.com/dovy2kas">github</a>.</p>}
-                    />
-
-                    <Card
-                        id="experience"
-                        title="Experience"
-                        content="Sadly, none yet."
-                    />
-
-                    <Card
-                        id="contact"
-                        title="Contact"
-                        content="You can shoot an email at contact@dovydas.tech"
-                    />
-                </div>
-            </>
-            }
+                <Card
+                    id="contact"
+                    title="Contact"
+                    content="You can shoot an email at contact@dovydas.tech"
+                />
+            </div>
         </>
 
     );
