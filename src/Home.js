@@ -180,10 +180,16 @@ const Sun = ({ x, y, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
         left: `${x * 100}%`,
         transform: `translateY(calc(${-y}px + 15vh))`,
     };
+    
+    console.log("Total minutes: " + totalMinutes)
+    console.log("Sunrise: " + sunrise)
+    console.log("Sunset: " + sunset)
 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
+        console.log("Sun")
         return <i className="fa-solid fa-sun sun" style={styles}></i>;
     } else {
+        console.log("Moon")
         return (
             <div class="moon" style={styles}>
                 <div class="hemisphere" style={leftbg}></div>
@@ -352,6 +358,9 @@ const Home = () => {
                 angle,
                 pageBackground,
                 moonRotationAngle,
+                totalMinutes,
+                sunrise,
+                sunset
             })
 
         } catch (error) {
@@ -359,9 +368,9 @@ const Home = () => {
         }
     };
 
-    useEffect(() => {
+    useState(() => {
         calculateValues()
-    }, [])
+    })
 
     return (
         <>

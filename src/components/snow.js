@@ -1,7 +1,7 @@
 import React from 'react';
 
 const Snow = ({snowing}) => {
-    if (snowing == true) {
+    if (snowing === true) {
         return (
             <div>
                 <div class="snow"></div>
