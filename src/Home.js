@@ -4,11 +4,9 @@ import { useState } from 'react';
 import Snow from './components/snow';
 import Rain from './components/rain';
 import Navigation from './components/navigation';
-import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
-import SunCalc from 'suncalc';
 import Project from './components/project';
-import ProjectModal from './components/projectModal';
+import SunCalc from 'suncalc';
 import transacto_preview from './img/transacto/landing.jpg';
 import transacto_dashboard from './img/transacto/dashboard.jpg';
 import transacto_deposit from './img/transacto/deposit.jpg';
@@ -18,6 +16,8 @@ import gambtopia_preview from './img/gambtopia/roulette.jpg';
 import gambtopia_crash from './img/gambtopia/crash.jpg';
 import gambtopia_login from './img/gambtopia/login.jpg';
 import gambtopia_register from './img/gambtopia/register.jpg'
+const Carousel = React.lazy(() => import('react-multi-carousel'));
+const ProjectModal = React.lazy(() => import('./components/projectModal'))
 
 const responsive = {
     superLargeDesktop: {
@@ -417,20 +417,24 @@ const Home = () => {
                 </div>
             )}
             {showTransactoModal && (
-                <ProjectModal
-                    title="Banking website"
-                    content={<p class="text-base leading-relaxes text-gray-100">This is a simple banking website which allows it's users to send and receive, as well as deposit and withdraw funds. This project was made using flask-socketio, nginx, gunicorn and a MySQL database.</p>}
-                    images={transacto_images}
-                    action={() => setShowTransactoModal(false)}
-                />
+                <React.Suspense fallback={<div>Loading...</div>}>
+                    <ProjectModal
+                        title="Banking website"
+                        content={<p class="text-base leading-relaxes text-gray-100">This is a simple banking website which allows it's users to send and receive, as well as deposit and withdraw funds. This project was made using flask-socketio, nginx, gunicorn and a MySQL database.</p>}
+                        images={transacto_images}
+                        action={() => setShowTransactoModal(false)}
+                    />
+                </React.Suspense>
             )}
             {showGambtopiaModal && (
-                <ProjectModal
-                    title="Gambling website"
-                    content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fail using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
-                    images={gambtopia_images}
-                    action={() => setShowGambtopiaModal(false)}
-                />
+                <React.Suspense fallback={<div>Loading...</div>}>
+                    <ProjectModal
+                        title="Gambling website"
+                        content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fail using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
+                        images={gambtopia_images}
+                        action={() => setShowGambtopiaModal(false)}
+                    />
+                </React.Suspense>
             )}
 
             {/* Can be here, because if bool false, returns null, bool true only set if calculatedValues exist (location granted) */}
@@ -460,20 +464,23 @@ const Home = () => {
                     title="Projects"
                     content=
                     {
-                        <Carousel responsive={responsive}>
-                            <Project
-                                src={transacto_preview}
-                                desc="A simble banking website that allows deposits and withdrawals."
-                                title="Banking website"
-                                content={<button type="button" onClick={() => setShowTransactoModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
-                            />
-                            <Project
-                                src={gambtopia_preview}
-                                desc="A gambling website with a provably fair system."
-                                title="Gambling website"
-                                content={<button type="button" onClick={() => setShowGambtopiaModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
-                            />
-                        </Carousel>
+                        <React.Suspense fallback={<div>Loading...</div>}>
+                            <Carousel responsive={responsive}>
+                                <Project
+                                    src={transacto_preview}
+                                    desc="A simble banking website that allows deposits and withdrawals."
+                                    title="Banking website"
+                                    content={<button type="button" onClick={() => setShowTransactoModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
+                                />
+                                <Project
+                                    src={gambtopia_preview}
+                                    desc="A gambling website with a provably fair system."
+                                    title="Gambling website"
+                                    content={<button type="button" onClick={() => setShowGambtopiaModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
+                                />
+                            </Carousel>
+                        </React.Suspense>
+
                     }
 
                 />
