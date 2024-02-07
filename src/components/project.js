@@ -7,7 +7,7 @@ const Project = ({ src, desc, title, content }) => {
     return (
         <>
             <div className="rounded shadow-md">
-                <img src={src} alt="Preview" class="h-auto max-w-xs mr-2 inline-block rounded"></img>
+                <img src={src} alt="project preview" class="h-auto max-w-xs mr-2 inline-block rounded"></img>
                 <div class="inline-block">
                     <p class="text-3xl mb-3 ">{title}</p>
                     {desc} <br></br>

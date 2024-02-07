@@ -1,23 +1,23 @@
 import React from 'react';
 import './styles/style.scss';
-import { useState, useEffect } from 'react';
-import moment from 'moment';
+import { useState } from 'react';
 import Snow from './components/snow';
 import Rain from './components/rain';
 import Navigation from './components/navigation';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
+import SunCalc from 'suncalc';
 import Project from './components/project';
 import ProjectModal from './components/projectModal';
-import transacto_preview from './img/transacto/landing.png';
-import transacto_dashboard from './img/transacto/dashboard.png';
-import transacto_deposit from './img/transacto/deposit.png';
-import transacto_profile from './img/transacto/profile.png';
-import transacto_login from './img/transacto/login.png';
-import gambtopia_preview from './img/gambtopia/roulette.png';
-import gambtopia_crash from './img/gambtopia/crash.png';
-import gambtopia_login from './img/gambtopia/login.png';
-import gambtopia_register from './img/gambtopia/register.png'
+import transacto_preview from './img/transacto/landing.jpg';
+import transacto_dashboard from './img/transacto/dashboard.jpg';
+import transacto_deposit from './img/transacto/deposit.jpg';
+import transacto_profile from './img/transacto/profile.jpg';
+import transacto_login from './img/transacto/login.jpg';
+import gambtopia_preview from './img/gambtopia/roulette.jpg';
+import gambtopia_crash from './img/gambtopia/crash.jpg';
+import gambtopia_login from './img/gambtopia/login.jpg';
+import gambtopia_register from './img/gambtopia/register.jpg'
 
 const responsive = {
     superLargeDesktop: {
@@ -41,42 +41,60 @@ const responsive = {
 const transacto_images = [
     {
         original: transacto_preview,
+        originalAlt: "transacto landing",
         thumbnail: transacto_preview,
+        thumbnailAlt: "transacto landing thumbnail"
     },
     {
         original: transacto_dashboard,
+        originalAlt: "transacto dashboard",
         thumbnail: transacto_dashboard,
+        thumbnailAlt: "transacto dashboard thumbnail"
     },
     {
         original: transacto_profile,
+        originalAlt: "transacto profile",
         thumbnail: transacto_profile,
+        thumbnailAlt: "transacto profile thumbnail"
     },
     {
         original: transacto_deposit,
+        originalAlt: "transacto deposit",
         thumbnail: transacto_deposit,
+        thumbnailAlt: "transacto deposit thumbnail"
     },
     {
         original: transacto_login,
+        originalAlt: "transacto login",
         thumbnail: transacto_login,
+        thumbnailAlt: "transacto login thumbnail"
     }
 ];
 
 const gambtopia_images = [
     {
         original: gambtopia_preview,
+        originalAlt: "gambtopia roulette",
         thumbnail: gambtopia_preview,
+        thumbnailAlt: "gambtopia roulette thumbnail"
     },
     {
         original: gambtopia_crash,
+        originalAlt: "gambtopia crash",
         thumbnail: gambtopia_crash,
+        thumbnailAlt: "gambtopia crash thumbnail"
     },
     {
         original: gambtopia_login,
+        originalAlt: "gambtopia login",
         thumbnail: gambtopia_login,
+        thumbnailAlt: "gambtopia login thumbnail"
     },
     {
         original: gambtopia_register,
+        originalAlt: "gambtopia register",
         thumbnail: gambtopia_register,
+        thumbnailAlt: "gambtopia register thumbnail"
     }
 ];
 
@@ -127,18 +145,6 @@ function generateParabolaInRange(input, height = document.documentElement.scroll
     return Math.max(0, Math.min(height, y));
 }
 
-const formatTimeToTotalMinutes = (timeString) => {
-    const timeFormat = 'h:mm A';
-    const date = moment(timeString, timeFormat);
-
-    if (date.isValid()) {
-        const totalMinutes = (date.hours() + 2) * 60 + date.minutes();
-        return totalMinutes;
-    } else {
-        return 'Invalid Date';
-    }
-};
-
 const getMoonPhaseRotation = date => {
     const cycleLength = 29.5
 
@@ -180,10 +186,6 @@ const Sun = ({ x, y, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
         left: `${x * 100}%`,
         transform: `translateY(calc(${-y}px + 15vh))`,
     };
-    
-    console.log("Total minutes: " + totalMinutes)
-    console.log("Sunrise: " + sunrise)
-    console.log("Sunset: " + sunset)
 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
         console.log("Sun")
@@ -292,8 +294,11 @@ const Home = () => {
             setShowLoader(locationAccepted)
             const location = await getUserLocation(locationAccepted);
 
-            const responseSun = await fetch('https://api.sunrise-sunset.org/json?lat=' + location.latitude + '&lng=' + location.longitude);
-            const dataSun = await responseSun.json();
+            const currentDate = new Date();
+            const times = SunCalc.getTimes(currentDate, location.latitude, location.longitude);
+            const sunrise = times.sunrise.getHours() * 60 + times.sunrise.getMinutes();
+            const sunset = times.sunset.getHours() * 60 + times.sunset.getMinutes();
+
 
             const responseWeather = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + location.latitude + '&longitude=' + location.longitude + '&current=rain,showers,snowfall&past_days=1&forecast_days=1');
             const dataWeather = await responseWeather.json();
@@ -306,8 +311,6 @@ const Home = () => {
             const currentMinutes = date.getMinutes();
             const totalMinutes = currentHours * 60 + currentMinutes;
 
-            const sunrise = formatTimeToTotalMinutes(dataSun.results.sunrise);
-            const sunset = formatTimeToTotalMinutes(dataSun.results.sunset);
             var startColor;
             var endColor;
 
