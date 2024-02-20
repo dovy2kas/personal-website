@@ -7,6 +7,9 @@ import Navigation from './components/navigation';
 import 'react-multi-carousel/lib/styles.css';
 import Project from './components/project';
 import SunCalc from 'suncalc';
+import Card from './components/card';
+import Sun from './components/sun';
+import Title from './components/title';
 import transacto_preview from './img/transacto/landing.jpg';
 import transacto_dashboard from './img/transacto/dashboard.jpg';
 import transacto_deposit from './img/transacto/deposit.jpg';
@@ -155,72 +158,6 @@ const getMoonPhaseRotation = date => {
 
     return 360 - Math.floor(currentMoonPhasePercentage * 360)
 }
-
-const Sun = ({ x, y, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
-    var leftbg;
-    var rightbg;
-
-    const dividerRotation = {
-        transform: `rotate3d(0, 1, 0, ${moonRotationAngle}deg)`
-    }
-
-
-    if (moonRotationAngle < 180) {
-        leftbg = {
-            backgroundColor: '#c7cbd0'
-        }
-        rightbg = {
-            backgroundColor: '#9098a1'
-        }
-    } else {
-        leftbg = {
-            backgroundColor: '#9098a1'
-        }
-        rightbg = {
-            backgroundColor: '#c7cbd0'
-        }
-    }
-
-    const styles = {
-        position: 'absolute',
-        left: `${x * 100}%`,
-        transform: `translateY(calc(${-y}px + 15vh))`,
-    };
-
-    if (totalMinutes >= sunrise && totalMinutes <= sunset) {
-        return <i className="fa-solid fa-sun sun" style={styles}></i>;
-    } else {
-        return (
-            <div class="moon" style={styles}>
-                <div class="hemisphere" style={leftbg}></div>
-                <div class="hemisphere" style={rightbg}></div>
-                <div class="divider" style={dividerRotation}></div>
-            </div>
-        );
-    }
-
-};
-
-const Title = () => {
-    return (
-        <div class="grid md:justify-center w-3/4 md:w-screen my-20">
-            <div class="group">
-                <p class="text-white text-7xl ">Hello, my name is <span class="text-blue-500">Dovydas</span>! <br></br></p>
-                <p class="text-white text-xl ">I am a passionate web developer that loves learning new things.</p>
-            </div>
-        </div>
-    )
-}
-
-const Card = ({ id, title, content }) => {
-    return (
-        <div className="card md:justify-center w-3/4 md:w-2/4 mb-20 p-5 rounded shadow-md" id={id}>
-            <p className="text-5xl mb-5">{title}</p>
-            <p>{content}</p>
-
-        </div>
-    );
-};
 
 function mapValueToGradient(value, gradientColors) {
     const gradientLength = gradientColors.length - 1;
