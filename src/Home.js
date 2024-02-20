@@ -188,10 +188,8 @@ const Sun = ({ x, y, totalMinutes, sunrise, sunset, moonRotationAngle }) => {
     };
 
     if (totalMinutes >= sunrise && totalMinutes <= sunset) {
-        console.log("Sun")
         return <i className="fa-solid fa-sun sun" style={styles}></i>;
     } else {
-        console.log("Moon")
         return (
             <div class="moon" style={styles}>
                 <div class="hemisphere" style={leftbg}></div>
@@ -394,14 +392,14 @@ const Home = () => {
                                     <b>Sun Position:</b> The position of the sun in the sky depends on your geographical location. By accessing your location, we can accurately render the sun on our website.
                                 </p>
                                 <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                                    <b>Weather Conditions:</b> Knowing your location helps us determine if it's raining or snowing in your area. This information allows us to provide you with relevant weather updates.
+                                    <b>Weather Conditions:</b> Knowing your location helps us determine if it's raining or snowing in your area. This information allows us to render the website according do this data.
                                 </p>
                                 <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                                    <b>Background Adjustment:</b> We customize the background of our website based on the current time in your location. This creates a more immersive experience tailored to your surroundings.
+                                    <b>Background Adjustment:</b> We customize the background of our website based on the current time in your location.
                                 </p>
                                 <h3 class="font-semibold text-slate-100">How we handle your data:</h3>
                                 <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                                    <b>Privacy:</b> Your location data is used solely for the purposes mentioned above. We do not store or share this information with any third parties.
+                                    <b>Privacy:</b> Your location data is used solely for the purposes mentioned above. I do not store or share this information with any third parties.
                                 </p>
                                 <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
                                     <b>Consent:</b> By clicking "Allow", you consent to sharing your location with us. You can revoke this access at any time in your browser settings.
@@ -430,7 +428,7 @@ const Home = () => {
                 <React.Suspense fallback={<div>Loading...</div>}>
                     <ProjectModal
                         title="Gambling website"
-                        content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fail using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
+                        content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fair using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
                         images={gambtopia_images}
                         action={() => setShowGambtopiaModal(false)}
                     />
