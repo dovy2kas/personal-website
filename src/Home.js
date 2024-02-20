@@ -10,15 +10,7 @@ import SunCalc from 'suncalc';
 import Card from './components/card';
 import Sun from './components/sun';
 import Title from './components/title';
-import transacto_preview from './img/transacto/landing.jpg';
-import transacto_dashboard from './img/transacto/dashboard.jpg';
-import transacto_deposit from './img/transacto/deposit.jpg';
-import transacto_profile from './img/transacto/profile.jpg';
-import transacto_login from './img/transacto/login.jpg';
-import gambtopia_preview from './img/gambtopia/roulette.jpg';
-import gambtopia_crash from './img/gambtopia/crash.jpg';
-import gambtopia_login from './img/gambtopia/login.jpg';
-import gambtopia_register from './img/gambtopia/register.jpg'
+import { transacto, gambtopia } from './img/index';
 const Carousel = React.lazy(() => import('react-multi-carousel'));
 const ProjectModal = React.lazy(() => import('./components/projectModal'))
 
@@ -40,66 +32,6 @@ const responsive = {
         items: 1
     }
 };
-
-const transacto_images = [
-    {
-        original: transacto_preview,
-        originalAlt: "transacto landing",
-        thumbnail: transacto_preview,
-        thumbnailAlt: "transacto landing thumbnail"
-    },
-    {
-        original: transacto_dashboard,
-        originalAlt: "transacto dashboard",
-        thumbnail: transacto_dashboard,
-        thumbnailAlt: "transacto dashboard thumbnail"
-    },
-    {
-        original: transacto_profile,
-        originalAlt: "transacto profile",
-        thumbnail: transacto_profile,
-        thumbnailAlt: "transacto profile thumbnail"
-    },
-    {
-        original: transacto_deposit,
-        originalAlt: "transacto deposit",
-        thumbnail: transacto_deposit,
-        thumbnailAlt: "transacto deposit thumbnail"
-    },
-    {
-        original: transacto_login,
-        originalAlt: "transacto login",
-        thumbnail: transacto_login,
-        thumbnailAlt: "transacto login thumbnail"
-    }
-];
-
-const gambtopia_images = [
-    {
-        original: gambtopia_preview,
-        originalAlt: "gambtopia roulette",
-        thumbnail: gambtopia_preview,
-        thumbnailAlt: "gambtopia roulette thumbnail"
-    },
-    {
-        original: gambtopia_crash,
-        originalAlt: "gambtopia crash",
-        thumbnail: gambtopia_crash,
-        thumbnailAlt: "gambtopia crash thumbnail"
-    },
-    {
-        original: gambtopia_login,
-        originalAlt: "gambtopia login",
-        thumbnail: gambtopia_login,
-        thumbnailAlt: "gambtopia login thumbnail"
-    },
-    {
-        original: gambtopia_register,
-        originalAlt: "gambtopia register",
-        thumbnail: gambtopia_register,
-        thumbnailAlt: "gambtopia register thumbnail"
-    }
-];
 
 function normalizeTime(currentTime, sunriseTime, sunsetTime, moonriseTime, moonsetTime) {
     const calculateDuration = (start, end) => {
@@ -356,7 +288,7 @@ const Home = () => {
                     <ProjectModal
                         title="Banking website"
                         content={<p class="text-base leading-relaxes text-gray-100">This is a simple banking website which allows it's users to send and receive, as well as deposit and withdraw funds. This project was made using flask-socketio, nginx, gunicorn and a MySQL database.</p>}
-                        images={transacto_images}
+                        images={transacto}
                         action={() => setShowTransactoModal(false)}
                     />
                 </React.Suspense>
@@ -366,7 +298,7 @@ const Home = () => {
                     <ProjectModal
                         title="Gambling website"
                         content={<p class="text-base leading-relaxes text-gray-100">This is a gambling website which has two modes: roulette and crash. While building it I learned how to transfer live data, verify the user actions and prove that bets were fair using cryptography. This project was made using flask-socketio, nginx, gunicorn, MySQL and ReCaptcha.</p>}
-                        images={gambtopia_images}
+                        images={gambtopia}
                         action={() => setShowGambtopiaModal(false)}
                     />
                 </React.Suspense>
@@ -402,13 +334,13 @@ const Home = () => {
                         <React.Suspense fallback={<div>Loading...</div>}>
                             <Carousel responsive={responsive}>
                                 <Project
-                                    src={transacto_preview}
+                                    src={transacto[0].thumbnail}
                                     desc="A simble banking website that allows deposits and withdrawals."
                                     title="Banking website"
                                     content={<button type="button" onClick={() => setShowTransactoModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
                                 />
                                 <Project
-                                    src={gambtopia_preview}
+                                    src={gambtopia[0].thumbnail}
                                     desc="A gambling website with a provably fair system."
                                     title="Gambling website"
                                     content={<button type="button" onClick={() => setShowGambtopiaModal(true)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Read more</button>}
