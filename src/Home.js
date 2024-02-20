@@ -216,7 +216,8 @@ const Home = () => {
                 endColor = mapValueToGradient(x, nighttimeGradientEnd);
             }
             const angle = subtractDegrees(x * 180, 90);
-            const pageBackground = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
+            var pageBackground = `linear-gradient(${angle}deg, ${startColor} 0%, ${endColor} 100%)`;
+            pageBackground = `radial-gradient(circle at ${x * 100}% calc(50% - ${y}px + 15vh), ${endColor} 0%, ${startColor} 100%)`
 
             const moonRotationAngle = getMoonPhaseRotation(new Date());
 
@@ -308,7 +309,7 @@ const Home = () => {
             <Snow snowing={isSnowing} />
             <Rain isRaining={isRaining} />
 
-            <div style={{ background: calculatedValues?.pageBackground ?? '#3079d1' }} class="page-container grid grid-cols-1 place-items-center w-screen">
+            <div style={{ background: calculatedValues?.pageBackground ?? '#3079d1'}} class="page-container grid grid-cols-1 place-items-center w-screen">
                 {!!calculatedValues && (
                     <Sun
                         x={calculatedValues.x}
